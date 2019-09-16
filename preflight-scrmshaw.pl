@@ -78,12 +78,13 @@ my $genomefilename = "$genomename" . "_$datestring";
 my $logfilename = "preflight_$genomefilename" . "_$gffname";
 
 
-## data structures
+## global hashes and arrays
 my %seqid = (); #hash of seqids
 my %seqidHOA = (); #hash of arrays for full gene table
 my %geneid = ();
 my %exonid = ();
 my %chr = (); #for fasta file chromosomes
+my %annot_types = (); #hash of 'types' from 3rd field of gff
 
 my @genearray = ();
 my @exonarray = ();
@@ -122,12 +123,13 @@ warn "\nprocessing GFF3 file: $Gff\n";
 while(<IFILE>){
 	$gfflinecount++;
 	
+	##############################################
 	#debug (hidden command line option)
 	if (($stoppoint > 0) && ($gfflinecount==$stoppoint))
 		{ print $fh "\n**stopping at line $gfflinecount**\n\n"; 
 		last;
 	}
-	
+	##############################################
 		
 	
 	chomp;
@@ -139,6 +141,9 @@ while(<IFILE>){
 	
 	my @line = split('\t', $_);  #assumes tab-delimited file
 	#but scrmshaw code uses any white space in gff3.pl
+	
+	#track the 'types' used in this GFF file:
+	$annot_types{$line[2]}++;
 		
 	#only want 'gene' or 'exon' types:
 	next unless ( ($line[2] eq 'gene') || ($line[2] eq 'exon') );
@@ -425,6 +430,15 @@ my $size = keys %seqidHOA;
 print $fh "total chr: $size\n";
 
 print $fh "\n";
+
+print $fh "\n";
+print $fh "------------------------------------------------------------\n";
+print $fh "ANNOTATION 'TYPE' DATA FROM THIS GFF FILE:\n";
+foreach my $key (sort keys %annot_types){
+	print $fh "$key\n";
+	}
+
+print $fh "\n";	
 
 close($fh);
 
