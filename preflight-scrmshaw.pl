@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 ################################################################
-# preflight-scrmshaw.pl  v1.1
+# preflight-scrmshaw.pl  v1.2
 #
 # (c) Marc S. Halfon September 2019
 #
@@ -73,9 +73,7 @@ my $datestring = "$month-$day-$year";
 my($gffname, $gffpath, $gffsuffix) = fileparse($Gff);
 my($genomename, $genomepath, $genomesuffix) = fileparse($genome);
 
-my $gfffilename = "$gffname" . "_$datestring";
-my $genomefilename = "$genomename" . "_$datestring";
-my $logfilename = "preflight_$genomefilename" . "_$gffname";
+my $logfilename = "preflight_$genomename" . "_$gffname" . "_$datestring";
 
 
 ## global hashes and arrays
@@ -85,22 +83,21 @@ my %geneid = ();
 my %exonid = ();
 my %chr = (); #for fasta file chromosomes
 my %annot_types = (); #hash of 'types' from 3rd field of gff
+my %headerchr = (); #hash for chr ids from ##sequence-region lines
 
 my @genearray = ();
 my @exonarray = ();
-#my @full_gene_table = ();
 
 #open out file: see https://www.itworld.com/article/2816641/redirecting-standard-error-in-perl.html
 my $fh;
 if ($out){
-	open ($fh, ">&STDOUT") or die "Can't open $logfilename for writing: $!";
+	open ($fh, ">&STDOUT") or die "Problem directing to STDOUT for writing: $!";
 } else {
 	open ($fh, ">$logfilename") or die "Can't open $logfilename for writing: $!";
 }		
 
+print $fh "Validation report for $gffname, $genomename: $datestring\n\n";
 
-
-print $fh "Validation report for $gffname, $genomename: $datestring\n";
 
 ##======================== validate the GFF file ====================##
 #note that this is not a true GFF3 validation but simply checks
@@ -133,8 +130,16 @@ while(<IFILE>){
 		
 	
 	chomp;
+    
     last if $_ eq '##FASTA'; #we don't want this part of the file
+    
+    if ($_ =~ /##sequence-region/){
+    	my @line = split;
+    	$headerchr{$line[1]} = $line[3];
+    }	
+    
     next if $_ =~ /^#/;
+	
 	#my ($seqid-0,  $source-1, $type-2, 
 	#		$start-3,  $end-4,    $score-5,	
 	#		$strand-6, $phase-7,	$attr-8)	
@@ -186,7 +191,7 @@ while(<IFILE>){
 	}		
 	
 	#get seqid (chr)
-	$seqid{$line[0]}++;
+	$seqid{$line[0]}++ unless $seqid{$line[0]};
 			
 	#get gene and exon data, including storing all gene BED-like to get distances later
 	if ($line[2] eq 'gene'){
@@ -269,12 +274,12 @@ print $fh "GFF3: number of genes: $hasgene\n";
 print $fh "GFF3: number of exons: $hasexon\n";	
 
 print $fh "\n------------------------------------------------------------\n";
-print $fh "\nGene Data\n";
+print $fh "\nGENE DATA\n";
 foreach my $elem (@genearray){
 	print $fh "$elem\n";
 }	
 	
-print $fh "\n------------------------------------------------------------\n";print $fh "\nExon Data\n";
+print $fh "\n------------------------------------------------------------\n";print $fh "\nEXON DATA\n";
 foreach my $elem (@exonarray){
 	print $fh "$elem\n";
 }	
@@ -346,7 +351,7 @@ if ($not_in_fasta > 0){
 } else {
 	print $fh "All seqids in GFF are also in FASTA\n";	
 }					
-
+print $fh "See below for list of valid seqids and lengths\n";
 print $fh "\n";
 print $fh "------------------------------------------------------------\n";
 
@@ -432,6 +437,8 @@ print $fh "total chr: $size\n";
 print $fh "\n";
 
 print $fh "\n";
+
+##======================== output annotation 'type' data ====================##
 print $fh "------------------------------------------------------------\n";
 print $fh "ANNOTATION 'TYPE' DATA FROM THIS GFF FILE:\n";
 foreach my $key (sort keys %annot_types){
@@ -439,6 +446,28 @@ foreach my $key (sort keys %annot_types){
 	}
 
 print $fh "\n";	
+
+##============ list chromosomes and sizes from GFF  header====================##
+print $fh "\n";
+print $fh "------------------------------------------------------------\n";
+print $fh "SEQUENCE-REGIONS WITH GENES/EXONS (bp) -- does not assess other types:\n";
+
+my $undeffrag = 0;
+my $maxundef = 0;
+
+foreach my $key (sort keys %headerchr){
+	if (exists $seqid{$key}){
+		print $fh "$key\t$headerchr{$key}\n";
+	} else {
+		$undeffrag++;
+		$maxundef = $headerchr{$key} unless $maxundef > $headerchr{$key};
+	}	
+}
+my $avg = $maxundef/$undeffrag;
+printf $fh "\nThere are %.0f sequence-regions with no genes/exons (largest is %.0f bp, average %.2f bp)\n", $undeffrag, $maxundef, $avg;
+print $fh "\n";	
+
+
 
 close($fh);
 
