@@ -383,6 +383,8 @@ my $totaldistgenes = 0;
 my $negativedist = 0;
 my $genelength = 0;
 
+print $fh "\nIntergenic distance information\n\n";
+
 foreach my $key (keys %seqidHOA){
 	my @sorted = ();
 	@sorted = map {$_->[0]}
