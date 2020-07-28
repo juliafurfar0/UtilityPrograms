@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 ################################################################
-# preflight-scrmshaw.pl  v1.2
+# preflight-scrmshaw.pl  v1.3
 #
 # (c) Marc S. Halfon September 2019
 #
@@ -84,6 +84,7 @@ my %exonid = ();
 my %chr = (); #for fasta file chromosomes
 my %annot_types = (); #hash of 'types' from 3rd field of gff
 my %headerchr = (); #hash for chr ids from ##sequence-region lines
+my $tmpchrsize = 0; # tmp store of scaffold/chr length
 
 my @genearray = ();
 my @exonarray = ();
@@ -133,11 +134,18 @@ while(<IFILE>){
     
     last if $_ eq '##FASTA'; #we don't want this part of the file
     
-    if ($_ =~ /##sequence-region/){
+
+### this part updated v1.3 to see to solve problem of RefSeq format GFF where  "##sequence-region" != seqID
+   if ($_ =~ /##sequence-region/){
     	my @line = split;
-    	$headerchr{$line[1]} = $line[3];
+   
+   		$headerchr{$line[1]}{seen} = 0; #establishes the hash key=>value
+   		$headerchr{$line[1]}{length} = $line[3];  #gets the length
+    	$tmpchrsize = $line[3]; #holds the length in tmp for when seqID is different
+    	next;
     }	
-    
+###
+ 
     next if $_ =~ /^#/;
 	
 	#my ($seqid-0,  $source-1, $type-2, 
@@ -146,6 +154,16 @@ while(<IFILE>){
 	
 	my @line = split('\t', $_);  #assumes tab-delimited file
 	#but scrmshaw code uses any white space in gff3.pl
+	
+	
+### this part this part updated v1.3 to see to solve problem of RefSeq format GFF where  "##sequence-region" != seqID
+# assumes that the feature lines will immediately follow the ##sequence-region if not
+# all grouped together at the beginning
+
+	$headerchr{$line[0]}{length} = $tmpchrsize unless $headerchr{$line[0]};
+	$headerchr{$line[0]}{seen}++;
+###	
+	
 	
 	#track the 'types' used in this GFF file:
 	$annot_types{$line[2]}++;
@@ -457,12 +475,14 @@ print $fh "SEQUENCE-REGIONS WITH GENES/EXONS (bp) -- does not assess other types
 my $undeffrag = 0;
 my $maxundef = 0;
 
+##this part updated v1.3 to fix problem when "##sequence-region" != seqID
 foreach my $key (sort keys %headerchr){
+	next if $headerchr{$key}{seen} == 0;
 	if (exists $seqid{$key}){
-		print $fh "$key\t$headerchr{$key}\n";
+		print $fh "$key\t$headerchr{$key}{length}\n";
 	} else {
 		$undeffrag++;
-		$maxundef = $headerchr{$key} unless $maxundef > $headerchr{$key};
+		$maxundef = $headerchr{$key}{length} unless $maxundef > $headerchr{$key}{length};
 	}	
 }
 my $avg = $maxundef/$undeffrag;
