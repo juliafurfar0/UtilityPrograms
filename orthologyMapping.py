@@ -57,16 +57,7 @@ def conv_dict(nameOfCDict,fileC):
 		nameOfCDict = {row[1].strip():row[0] for row in rows}
 	return(nameOfCDict)
 	
-	
-# def geneSymbol_dict(nameofSDict,fileS):
-# 	with open(fileS,'r') as fi:
-# 		for line in fi:
-# 			if not (line.startswith('#') or line.strip()==''):
-# 				rows = (line.split('\t') )
-# 				#print(rows[2])
-# 				nameofSDict = {rows[0]:rows[2]}
-# 		#nameofSDict = {row[0]:row[2] for row in rows}
-# 	return(nameofSDict)
+
 def geneSymbol_dict(nameofSDict,fileS):
 	with open(fileS,'r') as fi:
 		rows = (line.split('\t') for line in fi if not (line.startswith('#') or line.strip()==''))
@@ -86,30 +77,6 @@ def orthologs_dict(nameOfODict_orth,nameOfDict_para,fileO):
 			if row[4]!='NULL\n':
 				nameOfODict_orth[row[0]]=row[4].strip()
 			
-			#print(row)
-			# if row[2]==row[4].strip():
-# 				print('No ortho No para')
-# 				nameOfODict[row[0]]='NULL'
-# 			if row[2]=='NULL' and row[4].strip()!='NULL':
-# 				print('No para But Ortho')
-# 				nameOfODict[row[0]]=row[4].strip()
-# 
-# 			if row[4].strip()=='NULL' and row[2]!='NULL':
-# 				#print('No ortho But para')
-# 				paralogs=row[2].split(',')
-# 				if len(paralogs)>1:
-# 					if paralogs[1]=='':
-# 						#print('one paralog')
-# 						#print(paralogs[0])
-# 						if paralogs[0]==row[4].strip():
-# 							print('one paralog that is same as ortholog')
-# 							nameOfODict[row[0]]=row[4].strip()
-# 						else:
-# 							print('paralog differnt than ortholog')
-# 							nameOfODict[row[0]]=paralogs[0]+','+row[4].strip()
-# 					else:
-# 						print('More than one paralog')
-# 						nameOfODict[row[0]]=row[2]+','+row[4].strip()
 
 	return(nameOfODict_orth,nameOfDict_para)
 #-----------------------------MAIN FUNCTION-------------------
