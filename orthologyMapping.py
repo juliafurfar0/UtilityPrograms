@@ -23,10 +23,15 @@ def idMap_dict(nameOfDict,file):
 		nameOfDict = {row[1].strip('\n'):row[0] for row in rows}
 	return(nameOfDict)
 
-def brh_dict(nameOfBrhDict,fileBrh):
+def brh_dict(nameOfBrhDict,fileBrh,flipping):
 	with open(fileBrh,'r') as fb:
 		rowsB=(line.split('\t') for line in fb)
-		nameOfBrhDict= {rowb[0]:rowb[1] for rowb in rowsB}
+		if (flipping == 'true'):
+			#print('true')
+			nameOfBrhDict= {rowb[0]:rowb[1] for rowb in rowsB}
+		else:
+			#print('False')
+			nameOfBrhDict= {rowb[1]:rowb[0] for rowb in rowsB}
 	return(nameOfBrhDict)
 
 def idMap2_dict(nameOfDict2,file2):
@@ -57,16 +62,7 @@ def conv_dict(nameOfCDict,fileC):
 		nameOfCDict = {row[1].strip():row[0] for row in rows}
 	return(nameOfCDict)
 	
-	
-# def geneSymbol_dict(nameofSDict,fileS):
-# 	with open(fileS,'r') as fi:
-# 		for line in fi:
-# 			if not (line.startswith('#') or line.strip()==''):
-# 				rows = (line.split('\t') )
-# 				#print(rows[2])
-# 				nameofSDict = {rows[0]:rows[2]}
-# 		#nameofSDict = {row[0]:row[2] for row in rows}
-# 	return(nameofSDict)
+
 def geneSymbol_dict(nameofSDict,fileS):
 	with open(fileS,'r') as fi:
 		rows = (line.split('\t') for line in fi if not (line.startswith('#') or line.strip()==''))
@@ -86,30 +82,6 @@ def orthologs_dict(nameOfODict_orth,nameOfDict_para,fileO):
 			if row[4]!='NULL\n':
 				nameOfODict_orth[row[0]]=row[4].strip()
 			
-			#print(row)
-			# if row[2]==row[4].strip():
-# 				print('No ortho No para')
-# 				nameOfODict[row[0]]='NULL'
-# 			if row[2]=='NULL' and row[4].strip()!='NULL':
-# 				print('No para But Ortho')
-# 				nameOfODict[row[0]]=row[4].strip()
-# 
-# 			if row[4].strip()=='NULL' and row[2]!='NULL':
-# 				#print('No ortho But para')
-# 				paralogs=row[2].split(',')
-# 				if len(paralogs)>1:
-# 					if paralogs[1]=='':
-# 						#print('one paralog')
-# 						#print(paralogs[0])
-# 						if paralogs[0]==row[4].strip():
-# 							print('one paralog that is same as ortholog')
-# 							nameOfODict[row[0]]=row[4].strip()
-# 						else:
-# 							print('paralog differnt than ortholog')
-# 							nameOfODict[row[0]]=paralogs[0]+','+row[4].strip()
-# 					else:
-# 						print('More than one paralog')
-# 						nameOfODict[row[0]]=row[2]+','+row[4].strip()
 
 	return(nameOfODict_orth,nameOfDict_para)
 #-----------------------------MAIN FUNCTION-------------------
@@ -126,6 +98,8 @@ def main():
 	parser.add_argument('-symb','--symbolGene',help='Gene Symbol',required=True)
 	parser.add_argument('-conv','--conversion',help='if conversion req or not',default=False)
 	parser.add_argument('-setConv','--setConvGene',help='conversion file')
+	parser.add_argument('-flip','--flipped',help='if in brh DMEL:specie1 set it to False',default='True')
+	parser.add_argument('-sep','--separator',help='if separator is not colon, provide its value',default=':')
 	parser.add_argument('-so','--scrmshawOutput',help='SO')
 	args = parser.parse_args()
 	#absolute path
@@ -138,6 +112,8 @@ def main():
 	geneSet=os.path.abspath(args.geneSet)
 	symbolGene=os.path.abspath(args.symbolGene)
 	conversion=args.conversion
+	flipped=(args.flipped).lower()
+	separator=args.separator
 	scrmshawOutput=os.path.abspath(args.scrmshawOutput)
 	
 	if (conversion=="TRUE" or conversion=="T" or conversion=="true"):
@@ -146,7 +122,8 @@ def main():
 	
 	dict_sp1id=idMap_dict('sp1id',sp1idmap)
 	#pprint.pprint(dict_sp1id)
-	dict_brh=brh_dict('brh',brhsp1sp2)
+	#print('Flipped',flipped)
+	dict_brh=brh_dict('brh',brhsp1sp2,flipped)
 	dict_sp2id=idMap2_dict('sp2id',sp2idmap)
 	dict_symb=geneSymbol_dict('symbol',symbolGene)
 	
@@ -165,8 +142,8 @@ def main():
 			#f1.write(geneName+'\t')
 			if (conversion=="TRUE" or conversion=="T" or conversion=="true"):
 				#print('require c')
-				if geneName.split(':')[1] in dict_conv:
-					f1.write(dict_conv[geneName.split(':')[1]]+'\t')
+				if geneName.split(separator)[1] in dict_conv:
+					f1.write(dict_conv[geneName.split(separator)[1]]+'\t')
 				else:
 					f1.write(geneName+'\t')
 			else:
@@ -480,7 +457,8 @@ def main():
 
 					fo.write(cols[0]+'\t'+cols[1]+'\t'+cols[2]+'\t'+cols[3]+'\t'+cols[4]+'\t'+cols[5]+'\t'+ortho_para1+'\t'+cols[7]+'\t'+cols[8]+'\t'+cols[9]+'\t'+cols[10]+'\t'+ortho_para2+'\t'+cols[12]+'\t'+cols[13]+'\t'+cols[14]+'\t'+cols[15]+'\t'+cols[16]+'\t'+cols[17])
 
-#./orthologyMapping.py -np1 tcas -sp1id TCAST.idmap.txt -sp1pc TCAST.97pc.txt -brh TCAST_DMELA.brh -sp2pc DMELA.97pc.txt -sp2id DMELA.idmap.txt -geneSet OSG2geneSet.txt -symb fb_synonym_fb_2020_02.tsv -conv true -setConv OGS3toOGS2_conversion.txt -so scrmshawOutput_peaksCalled_antennal_lobe_imm_1388_peaks_30.bed 
-#/orthologyMapping_noc.py -np1 agamb -sp1id AGAMB.idmap.txt -sp1pc AGAMB.97pc.txt -brh AGAMB_DMELA.brh -sp2pc DMELA.97pc.txt -sp2id DMELA.idmap.txt -geneSet AGAM_4.9_genes -symb fb_synonym_fb_2020_02.tsv -conv false -so scrmshawOutput_peaksCalled_adult_circulatory_imm_MedianPointAmplitudeCurve_633_peaks.bed 
+#./orthologyMapping.py -np1 tcas -sp1id TCAST.idmap.txt -sp1pc TCAST.97pc.txt -brh TCAST_DMELA.brh -sp2pc DMELA.97pc.txt -sp2id DMELA.idmap.txt -geneSet OSG2geneSet.txt -symb fb_synonym_fb_2020_02.tsv -conv true -setConv OGS3toOGS2_conversion.txt -so scrmshawOutput_peaksCalled_antennal_lobe_imm_1388_peaks.bed -sep ':' -flip TRUE
+#../orthologyMapping.py -np1 agamb -sp1id AGAMB.idmap.txt -sp1pc AGAMB.97pc.txt -brh AGAMB_DMELA.brh -sp2pc DMELA.97pc.txt -sp2id DMELA.idmap.txt -geneSet AGAM_4.9_genes -symb fb_synonym_fb_2020_02.tsv -conv false -so scrmshawOutput_peaksCalled_adult_circulatory_imm_MedianPointAmplitudeCurve_633_peaks.bed 
+#./orthologyMapping.py -np1 apis -sp1id AMELL.idmap.txt -sp1pc AMELL.97pc.txt -brh AMELL_DMELA.brh -sp2pc DMELA.97pc.txt -sp2id DMELA.idmap.txt -geneSet OSG2geneSet.txt -symb fb_synonym_fb_2020_02.tsv -conv true -setConv OSG3toOSG2_conversion.txt -so scrmshawOutput_peaksCalled_adult_circulatory_imm_MedianPointAmplitudeCurve_575_peaks.bed -sep '|' -flip false
 
 main()
