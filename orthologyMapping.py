@@ -114,7 +114,8 @@ def main():
 	conversion=args.conversion
 	flipped=(args.flipped).lower()
 	separator=args.separator
-	scrmshawOutput=os.path.abspath(args.scrmshawOutput)
+	scrmshawOutput=(args.scrmshawOutput)
+	scrmshawOutputPath=os.path.abspath(scrmshawOutput)
 	
 	if (conversion=="TRUE" or conversion=="T" or conversion=="true"):
 		convGeneSet=os.path.abspath(args.setConvGene)
@@ -244,8 +245,9 @@ def main():
 	pprint.pprint(dict_orthologs)
 	print(len(dict_paralogs))
 	pprint.pprint(dict_paralogs)	
-
-	with open(scrmshawOutput,'r') as so,open('SO_ortho.bed','w') as fo:
+	
+	orthologOutput='SO_'+scrmshawOutput
+	with open(scrmshawOutputPath,'r') as so,open(orthologOutput,'w') as fo:
 		for line in so:
 			cols=line.split('\t')
 			
