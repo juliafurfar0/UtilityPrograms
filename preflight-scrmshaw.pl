@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 ################################################################
-# preflight-scrmshaw.pl  v1.3
+# preflight-scrmshaw.pl  v1.4
 #
 # (c) Marc S. Halfon September 2019
 #
@@ -485,7 +485,13 @@ foreach my $key (sort keys %headerchr){
 		$maxundef = $headerchr{$key}{length} unless $maxundef > $headerchr{$key}{length};
 	}	
 }
-my $avg = $maxundef/$undeffrag;
+
+my $avg = 0; 
+#this prevents a divide-by-zero error if no ##sequence-region defined
+if ($undeffrag > 0){
+	my $avg = $maxundef/$undeffrag;
+}	
+
 printf $fh "\nThere are %.0f sequence-regions with no genes/exons (largest is %.0f bp, average %.2f bp)\n", $undeffrag, $maxundef, $avg;
 print $fh "\n";	
 
