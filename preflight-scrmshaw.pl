@@ -312,7 +312,8 @@ print $fh "------------------------------------------------------------\n";
 #get headers into hash
 
 my $currentheader = "";
-my $seqerr = 0;
+my $seqerr1 = 0;
+my $seqerr2 = 0;
 
 open(GENEIN, "<$genome") or die "Can't open genome file: $!";
 
@@ -324,8 +325,7 @@ while(<GENEIN>){
 		$currentheader = $_;
 		
 		if($currentheader =~ /\|/){   #pipes cause problem later in scrm.pl with call to kmers.pl
-			print $fh "Problem with FASTA header: need to remove pipes ('|'), suggest replace with underscore ('_')\n";
-			$seqerr++;
+			$seqerr1++;
 		}
 		
 		my @tmpchr = split('\s+',$currentheader);
@@ -334,16 +334,21 @@ while(<GENEIN>){
 		
 		} else {
 		if ($_ =~ /[^ATGCNatgcn]/){   # (^ negates the class)
-			print $fh "FASTA: improper character in sequence $currentheader\n";
-			$seqerr++;
+			$seqerr2++;
 		}	
 	}
 }
 close(GENEIN);
-if($seqerr == 0){
+if($seqerr1 > 0 && $seqerr2 > 0){
+	if($seqerr1 > 0){
+		print $fh "Problem with FASTA header: need to remove pipes ('|'), suggest replace with underscore ('_')\n";
+	}
+	if($seqerr2 > 0){
+		print $fh "FASTA: improper character in sequence $currentheader\n";
+	}
+} else {
 	print $fh "FASTA: all sequences have proper characters\n\n";
-}	
-
+}
 
 
 ##================= compare the seqids between the files ==============##
