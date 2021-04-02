@@ -322,6 +322,12 @@ while(<GENEIN>){
 	chomp;
 	if ($_ =~ /^>/){   #FASTA header line
 		$currentheader = $_;
+		
+		if($currentheader =~ /\|/){   #pipes cause problem later in scrm.pl with call to kmers.pl
+			print $fh "Problem with FASTA header: need to remove pipes ('|'), suggest replace with underscore ('_')\n";
+			$seqerr++;
+		}
+		
 		my @tmpchr = split('\s+',$currentheader);
 		$tmpchr[0] =~ s/>//;  #remove the leading '>'
 		$chr{$tmpchr[0]}++;
