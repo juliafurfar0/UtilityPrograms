@@ -8,6 +8,8 @@ import argparse
 from Bio import SeqIO
 
 #This script is used to extract those scaffolds from the Masked fasta file that does not have any annotated gene in its gff, as we know that from preflight output
+#example command
+#./extract_unannotateedScaffold.py -po preflightOutput -f nameOfMaskedFasta
 
 def main():
 	#global d1
