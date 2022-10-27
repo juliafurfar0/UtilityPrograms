@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 ################################################################
-# preflight-scrmshaw.pl  v1.4
+# preflight-scrmshaw.pl  v1.5
 #
 # (c) Marc S. Halfon September 2019
 #
@@ -269,6 +269,17 @@ while(<IFILE>){
 }
 close(IFILE);
 
+#want to make sure that have both 'gene' and 'exon' types (updated v1.5):
+if (undef $annot_types{'gene'}){
+	print $fh "GFF: WARNING: No 'gene' set as a feature type\n";
+	$typeerr++;
+}
+
+if (undef $annot_types{'exon'}){
+	print $fh "GFF: WARNING: No 'exon' set as a feature type\n";
+	$typeerr++;
+}
+
 if($numfielderr == 0){
 	print $fh "GFF3: all lines have correct number of fields\n";
 }
@@ -349,6 +360,8 @@ if($seqerr1 > 0 && $seqerr2 > 0){
 } else {
 	print $fh "FASTA: all sequences have proper characters\n\n";
 }
+
+
 
 
 ##================= compare the seqids between the files ==============##
@@ -501,7 +514,7 @@ my $avg = 0;
 #this prevents a divide-by-zero error if no ##sequence-region defined
 if ($undeffrag > 0){
 	my $avg = $maxundef/$undeffrag;
-}	
+}
 
 printf $fh "\nThere are %.0f sequence-regions with no genes/exons (largest is %.0f bp, average %.2f bp)\n", $undeffrag, $maxundef, $avg;
 print $fh "\n";	
