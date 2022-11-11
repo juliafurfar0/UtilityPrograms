@@ -1,5 +1,9 @@
 #!/usr/bin/bash
 
+#version 3: Nov 2022 , HA
+#remove scores directory content as well
+
+
 
 #version 2: Sept 2019 , Hasiba Asma
 #clean up after SCRMhshaw HD
@@ -49,7 +53,7 @@ else
 			rm -rf $task*/fasta/kmers/*	
 			echo "deleting files in $task/fasta/windows..."
 			rm -rf $task*/fasta/windows/*
-			rm -rf $task/scores/*
+			rm -rf $task*/scores/*
 		fi
 	done
 fi
