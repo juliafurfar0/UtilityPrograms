@@ -27,7 +27,7 @@
 # fi		
 		
 #make sure that you want to clean this directory:
-echo -n "Are you sure you want to delete the contents of the fasta directories from all subfolders? [y/n] "
+echo -n "Are you sure you want to delete the contents of the fasta and score directories from all subfolders? [y/n] "
 
 read -n 1 confirmation
 
@@ -44,11 +44,12 @@ else
 	#	fi
 		else
 			echo "deleting files in $task/fasta/chr..."
-			rm -rf $task/fasta/chr/*
+			rm -rf $task*/fasta/chr/*
 			echo "deleting files in $task/fasta/kmers..."
-			rm -rf $task/fasta/kmers/*	
+			rm -rf $task*/fasta/kmers/*	
 			echo "deleting files in $task/fasta/windows..."
-			rm -rf $task/fasta/windows/*
+			rm -rf $task*/fasta/windows/*
+			rm -rf $task/scores/*
 		fi
 	done
 fi
