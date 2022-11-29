@@ -65,7 +65,7 @@ with open(file,'r') as infile:
 #pprint.pprint(diction)
 #print(locusList)
 
-with open('HitsAndSizePerLocus_'+file,'w') as outfile
+with open('HitsAndSizePerLocus_'+file,'w') as outfile:
 	for item in diction.keys():
 		#print(item)
 		scrms=diction[item].split(',')
